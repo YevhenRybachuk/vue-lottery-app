@@ -1,6 +1,8 @@
 import eslint from '@eslint/js'
 import vue from 'eslint-plugin-vue'
+import vueParser from 'vue-eslint-parser'
 import tseslint from 'typescript-eslint'
+import globals from 'globals'
 
 export default tseslint.config(
     {
@@ -17,7 +19,16 @@ export default tseslint.config(
     ...vue.configs['flat/recommended'],
 
     {
-        files: ['**/*.{ts,tsx,vue}'],
+        files: ['**/*.vue'],
+        languageOptions: {
+            parser: vueParser,
+            globals: globals.browser,
+            parserOptions: {
+                parser: tseslint.parser,
+                ecmaVersion: 'latest',
+                sourceType: 'module'
+            }
+        },
         rules: {
             'vue/multi-word-component-names': 'off'
         }
