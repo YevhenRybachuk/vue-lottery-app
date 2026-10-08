@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   modelValue: boolean
 }>()
 
@@ -14,7 +14,7 @@ const closeModal = () => {
 }
 
 const handleEscape = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') {
+  if (props.modelValue && event.key === 'Escape') {
     closeModal()
   }
 }
@@ -100,11 +100,14 @@ onBeforeUnmount(() => {
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.2s ease;
+  transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+  transform: translateY(-10px);
 }
 </style>

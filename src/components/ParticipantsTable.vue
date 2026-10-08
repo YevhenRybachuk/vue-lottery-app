@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import BaseModal from './BaseModal.vue'
 import BaseInput from './BaseInput.vue'
+import BaseButton from './BaseButton.vue'
 import SearchBar from './SearchBar.vue'
 import type { Participant } from '../types/participant'
 
@@ -314,21 +315,20 @@ const updateParticipant = () => {
 
           <td>
             <div class="d-flex gap-2">
-              <button
-                  type="button"
-                  class="btn btn-sm btn-primary"
+              <BaseButton
+                  size="sm"
                   @click="openEditModal(participant)"
               >
                 Редагувати
-              </button>
+              </BaseButton>
 
-              <button
-                  type="button"
-                  class="btn btn-sm btn-danger"
+              <BaseButton
+                  variant="danger"
+                  size="sm"
                   @click="openDeleteModal(participant)"
               >
                 Видалити
-              </button>
+              </BaseButton>
             </div>
           </td>
         </tr>
@@ -350,21 +350,19 @@ const updateParticipant = () => {
       </p>
 
       <template #footer>
-        <button
-            type="button"
-            class="btn btn-secondary"
+        <BaseButton
+            variant="secondary"
             @click="closeDeleteModal"
         >
           Ні
-        </button>
+        </BaseButton>
 
-        <button
-            type="button"
-            class="btn btn-danger"
+        <BaseButton
+            variant="danger"
             @click="confirmDelete"
         >
           Так
-        </button>
+        </BaseButton>
       </template>
     </BaseModal>
 
@@ -377,6 +375,7 @@ const updateParticipant = () => {
 
       <form
           id="edit-participant-form"
+          novalidate
           @submit.prevent="updateParticipant"
       >
         <BaseInput
@@ -415,21 +414,19 @@ const updateParticipant = () => {
       </form>
 
       <template #footer>
-        <button
-            type="button"
-            class="btn btn-secondary"
+        <BaseButton
+            variant="secondary"
             @click="closeEditModal"
         >
           Скасувати
-        </button>
+        </BaseButton>
 
-        <button
+        <BaseButton
             type="submit"
             form="edit-participant-form"
-            class="btn btn-primary"
         >
           Оновити дані
-        </button>
+        </BaseButton>
       </template>
     </BaseModal>
   </section>

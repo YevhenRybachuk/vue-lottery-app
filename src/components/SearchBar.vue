@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import BaseInput from './BaseInput.vue'
 
 const searchQuery = ref('')
@@ -17,7 +17,14 @@ watch(searchQuery, newValue => {
 
   debounceTimer = setTimeout(() => {
     emit('filter-by-name', newValue.trim())
+    debounceTimer = undefined
   }, 300)
+})
+
+onBeforeUnmount(() => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
 })
 </script>
 

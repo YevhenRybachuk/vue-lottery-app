@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import RegistrationForm from './components/RegistrationForm.vue'
 import ParticipantsTable from './components/ParticipantsTable.vue'
+import WinnersBlock from './components/WinnersBlock.vue'
 import type { Participant } from './types/participant'
 
 const STORAGE_KEY = 'vue-lottery-participants'
@@ -24,6 +25,10 @@ const participants = ref<Participant[]>(
     loadParticipants()
 )
 
+const winnersBlock = ref<InstanceType<typeof WinnersBlock> | null>(
+    null
+)
+
 const addParticipant = (
     participantData: Omit<Participant, 'id'>
 ) => {
@@ -39,6 +44,8 @@ const deleteParticipant = (id: string) => {
   participants.value = participants.value.filter(
       participant => participant.id !== id
   )
+
+  winnersBlock.value?.removeParticipantFromWinners(id)
 }
 
 const updateParticipant = (
@@ -73,6 +80,11 @@ watch(
     <h1 class="mb-4">
       Vue Lottery App
     </h1>
+
+    <WinnersBlock
+        ref="winnersBlock"
+        :participants="participants"
+    />
 
     <RegistrationForm
         :participants="participants"

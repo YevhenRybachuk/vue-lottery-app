@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive } from 'vue'
 import BaseButton from './BaseButton.vue'
 import BaseInput from './BaseInput.vue'
 import type { Participant } from '../types/participant'
@@ -21,8 +21,6 @@ const errors = reactive({
   phone: '',
   birthDate: ''
 })
-
-const submitted = ref(false)
 
 const emit = defineEmits<{
   'add-participant': [participant: {
@@ -104,13 +102,9 @@ const resetForm = () => {
   errors.email = ''
   errors.phone = ''
   errors.birthDate = ''
-
-  submitted.value = false
 }
 
 const submitForm = () => {
-  submitted.value = true
-
   if (!validateForm()) {
     return
   }
@@ -130,7 +124,10 @@ const submitForm = () => {
   <section class="registration-form">
     <h2 class="mb-4">Реєстрація учасника</h2>
 
-    <form @submit.prevent="submitForm">
+    <form
+        novalidate
+        @submit.prevent="submitForm"
+    >
       <BaseInput
           v-model="form.name"
           id="name"
@@ -173,12 +170,5 @@ const submitForm = () => {
         Зареєструватися
       </BaseButton>
     </form>
-
-    <p
-        v-if="submitted && !Object.values(errors).some(Boolean)"
-        class="text-success mt-3"
-    >
-      Дані форми успішно пройшли валідацію.
-    </p>
   </section>
 </template>
