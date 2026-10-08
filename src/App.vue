@@ -1,10 +1,28 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import RegistrationForm from './components/RegistrationForm.vue'
 import ParticipantsTable from './components/ParticipantsTable.vue'
 import type { Participant } from './types/participant'
 
-const participants = ref<Participant[]>([])
+const STORAGE_KEY = 'vue-lottery-participants'
+
+const loadParticipants = (): Participant[] => {
+  const savedParticipants = localStorage.getItem(STORAGE_KEY)
+
+  if (!savedParticipants) {
+    return []
+  }
+
+  try {
+    return JSON.parse(savedParticipants) as Participant[]
+  } catch {
+    return []
+  }
+}
+
+const participants = ref<Participant[]>(
+    loadParticipants()
+)
 
 const addParticipant = (
     participantData: Omit<Participant, 'id'>
@@ -22,6 +40,32 @@ const deleteParticipant = (id: string) => {
       participant => participant.id !== id
   )
 }
+
+const updateParticipant = (
+    updatedParticipant: Participant
+) => {
+  const index = participants.value.findIndex(
+      participant =>
+          participant.id === updatedParticipant.id
+  )
+
+  if (index !== -1) {
+    participants.value[index] = updatedParticipant
+  }
+}
+
+watch(
+    participants,
+    newParticipants => {
+      localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(newParticipants)
+      )
+    },
+    {
+      deep: true
+    }
+)
 </script>
 
 <template>
@@ -38,6 +82,7 @@ const deleteParticipant = (id: string) => {
     <ParticipantsTable
         :participants="participants"
         @delete-participant="deleteParticipant"
+        @update-participant="updateParticipant"
     />
   </main>
 </template>
