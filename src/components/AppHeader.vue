@@ -1,18 +1,39 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import AppNavigation from './AppNavigation.vue'
+import Logo from './Logo.vue'
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
   <header class="app-header">
-    <RouterLink to="/" class="logo">
-      Vue Lottery
-    </RouterLink>
+    <Logo />
 
     <AppNavigation />
 
-    <RouterLink to="/login" class="login-link">
-      Увійти
-    </RouterLink>
+    <div class="auth-actions">
+      <template v-if="authStore.isAuthenticated">
+        <span v-if="authStore.user" class="user-name me-3">
+          {{ authStore.user.firstName }}
+        </span>
+        <button type="button" class="btn btn-outline-danger btn-sm" @click="handleLogout">
+          Logout
+        </button>
+      </template>
+      <template v-else>
+        <RouterLink to="/login" class="login-link">
+          Login
+        </RouterLink>
+      </template>
+    </div>
   </header>
 </template>
 
@@ -28,11 +49,14 @@ import AppNavigation from './AppNavigation.vue'
   background: #fff;
 }
 
-.logo {
-  color: #222;
-  font-size: 22px;
-  font-weight: 700;
-  text-decoration: none;
+.auth-actions {
+  display: flex;
+  align-items: center;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #333;
 }
 
 .login-link {
@@ -41,9 +65,9 @@ import AppNavigation from './AppNavigation.vue'
   background: #0d6efd;
   color: #fff;
   text-decoration: none;
-}
 
-.login-link:hover {
-  background: #0b5ed7;
+  &:hover {
+    background: #0b5ed7;
+  }
 }
 </style>

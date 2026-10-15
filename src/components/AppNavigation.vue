@@ -1,8 +1,23 @@
+<script setup lang="ts">
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
+</script>
+
 <template>
   <nav class="navigation">
-    <RouterLink to="/">Головна</RouterLink>
-    <RouterLink to="/about">Про автора</RouterLink>
-    <RouterLink to="/users">Користувачі</RouterLink>
+    <RouterLink to="/" active-class="" exact-active-class="router-link-active">
+      Головна
+    </RouterLink>
+    <RouterLink to="/about">
+      Про автора
+    </RouterLink>
+    <RouterLink to="/users">
+      Користувачі
+    </RouterLink>
+    <RouterLink v-if="!authStore.isAuthenticated" to="/login">
+      Login
+    </RouterLink>
   </nav>
 </template>
 

@@ -1,38 +1,31 @@
-<script setup lang="ts">
-</script>
-
 <template>
-  <section class="home">
-    <h1>Vue Lottery App</h1>
-    <p>
-      Вебзастосунок для реєстрації учасників лотереї,
-      перегляду списку учасників і визначення переможця.
+  <section class="home container py-4">
+    <h1 class="mb-3">Vue Lottery App</h1>
+    <p class="lead">
+      Вебзастосунок для реєстрації учасників лотереї, перегляду списку користувачів із REST API та визначення переможців.
     </p>
 
-    <h2>Використані технології</h2>
+    <h2 class="mt-4">Використані технології</h2>
     <ul>
-      <li>Vue 3</li>
+      <li>Vue 3 (Composition API)</li>
       <li>TypeScript</li>
       <li>Vite</li>
-      <li>SCSS</li>
+      <li>Pinia (State Management)</li>
       <li>Vue Router</li>
+      <li>Bootstrap / SCSS</li>
+      <li>VeeValidate & Yup</li>
     </ul>
+
+    <p class="mt-4">
+      <strong>GitHub проєкту:</strong>
+      <a
+          href="https://github.com/YevhenRybachuk/vue-lottery-app"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ms-2"
+      >
+        https://github.com/YevhenRybachuk/vue-lottery-app
+      </a>
+    </p>
   </section>
 </template>
-
-<style scoped lang="scss">
-.home {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 32px 20px;
-
-  h1 {
-    margin-bottom: 16px;
-  }
-
-  p {
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-}
-</style>

@@ -16,6 +16,6 @@ export interface User {
     }
 }
 
-export type CreateUserDto = Omit<User, 'id'>
+export type CreateUserDto = Omit<User, 'id'> & { password: string }
 
-export type UpdateUserDto = Partial<CreateUserDto>
+export type UpdateUserDto = Partial<Omit<User, 'id'>> & { password?: string }

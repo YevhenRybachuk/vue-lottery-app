@@ -1,21 +1,18 @@
 <script setup lang="ts">
-import AppHeader from './components/AppHeader.vue'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import DefaultLayout from './layouts/DefaultLayout.vue'
+import AuthLayout from './layouts/AuthLayout.vue'
+
+const route = useRoute()
+
+const layout = computed(() => {
+  return route.meta.layout === 'auth' ? AuthLayout : DefaultLayout
+})
 </script>
 
 <template>
-  <AppHeader />
-
-  <main>
+  <component :is="layout">
     <RouterView />
-  </main>
+  </component>
 </template>
-
-<style lang="scss">
-#app {
-  min-height: 100vh;
-}
-
-main {
-  padding-bottom: 40px;
-}
-</style>
