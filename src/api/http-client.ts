@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://dummyjson.com'
 
 type TokensRefreshedCallback = (tokens: { accessToken: string; refreshToken: string }) => void
 
@@ -60,10 +60,6 @@ export async function http<T>(
     path: string,
     options: RequestInit = {}
 ): Promise<T> {
-    if (!BASE_URL) {
-        throw new Error('Не задано VITE_API_URL у файлі .env')
-    }
-
     let token = localStorage.getItem('access_token')
 
     const headers: Record<string, string> = {

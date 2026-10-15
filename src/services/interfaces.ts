@@ -21,6 +21,7 @@ export interface Editable<T, TUpdate> {
     update(id: number, data: TUpdate): Promise<T>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface Deletable<T> {
     delete(id: number): Promise<void>
 }

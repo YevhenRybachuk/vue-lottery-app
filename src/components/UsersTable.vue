@@ -1,13 +1,35 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import BaseModal from './BaseModal.vue'
 import type { User } from '../types/user'
 
 defineProps<{
   users: User[]
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'delete', id: number): void
 }>()
+
+const showDeleteModal = ref(false)
+const userToDelete = ref<User | null>(null)
+
+function openDeleteModal(user: User) {
+  userToDelete.value = user
+  showDeleteModal.value = true
+}
+
+function closeDeleteModal() {
+  showDeleteModal.value = false
+  userToDelete.value = null
+}
+
+function confirmDelete() {
+  if (userToDelete.value) {
+    emit('delete', userToDelete.value.id)
+  }
+  closeDeleteModal()
+}
 </script>
 
 <template>
@@ -60,7 +82,7 @@ defineEmits<{
             <button
                 type="button"
                 class="btn btn-sm btn-outline-danger"
-                @click="$emit('delete', user.id)"
+                @click="openDeleteModal(user)"
             >
               Видалити
             </button>
@@ -69,5 +91,24 @@ defineEmits<{
       </tr>
       </tbody>
     </table>
+
+    <BaseModal v-model="showDeleteModal">
+      <template #header>
+        <h5 class="modal-title mb-0">Підтвердження видалення</h5>
+      </template>
+
+      <p v-if="userToDelete" class="mb-0">
+        Ви дійсно бажаєте видалити користувача <strong>{{ userToDelete.firstName }} {{ userToDelete.lastName }}</strong> (@{{ userToDelete.username }})?
+      </p>
+
+      <template #footer>
+        <button type="button" class="btn btn-secondary" @click="closeDeleteModal">
+          Ні
+        </button>
+        <button type="button" class="btn btn-danger" @click="confirmDelete">
+          Так
+        </button>
+      </template>
+    </BaseModal>
   </div>
 </template>

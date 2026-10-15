@@ -105,8 +105,6 @@ function nextPage() {
 }
 
 async function deleteUser(id: number) {
-  if (!confirm(`Ви дійсно бажаєте видалити користувача #${id}?`)) return
-
   try {
     await ServiceProvider.users.delete(id)
     loadUsers()

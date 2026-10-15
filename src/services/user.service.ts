@@ -84,14 +84,31 @@ export class UserService
             .filter(u => !this.deletedUserIds.has(u.id))
             .map(u => this.modifiedUsers.get(u.id) || u)
 
-        if ((params.skip === 0 || !params.skip) && !params.q) {
-            const activeCreated = this.createdUsers.filter(u => !this.deletedUserIds.has(u.id))
-            usersList = [...activeCreated, ...usersList]
+        const matchingCreated = this.createdUsers.filter(u => {
+            if (this.deletedUserIds.has(u.id)) return false
+            if (!params.q) return true
+            const qLower = params.q.toLowerCase()
+            return (
+                u.firstName.toLowerCase().includes(qLower) ||
+                u.lastName.toLowerCase().includes(qLower) ||
+                u.email.toLowerCase().includes(qLower) ||
+                u.username.toLowerCase().includes(qLower)
+            )
+        })
+
+        if (params.skip === 0 || !params.skip) {
+            usersList = [...matchingCreated, ...usersList]
         }
+
+        const deletedCount = params.q
+            ? response.users.filter(u => this.deletedUserIds.has(u.id)).length
+            : this.deletedUserIds.size
+
+        const calculatedTotal = response.total + matchingCreated.length - deletedCount
 
         return {
             users: usersList,
-            total: response.total + this.createdUsers.length - this.deletedUserIds.size
+            total: Math.max(0, calculatedTotal)
         }
     }
 
@@ -112,7 +129,9 @@ export class UserService
     }
 
     async create(data: CreateUserDto): Promise<User> {
-        const { password, ...dataWithoutPassword } = data
+        const dataWithoutPassword: Record<string, unknown> = { ...data }
+        delete dataWithoutPassword['password']
+
         const apiResult = await http<User>('/users/add', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -123,7 +142,7 @@ export class UserService
             ...dataWithoutPassword,
             ...apiResult,
             id: newId
-        }
+        } as unknown as User
 
         this.createdUsers.unshift(newUser)
         this.saveState()
@@ -132,7 +151,9 @@ export class UserService
     }
 
     async update(id: number, data: UpdateUserDto): Promise<User> {
-        const { password, ...dataWithoutPassword } = data
+        const dataWithoutPassword: Record<string, unknown> = { ...data }
+        delete dataWithoutPassword['password']
+
         const apiResult = await http<User>(`/users/${id}`, {
             method: 'PUT',
             body: JSON.stringify(data),
@@ -144,7 +165,7 @@ export class UserService
             ...apiResult,
             ...dataWithoutPassword,
             id
-        }
+        } as unknown as User
 
         this.modifiedUsers.set(id, updatedUser)
 

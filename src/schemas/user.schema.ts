@@ -1,6 +1,6 @@
 import * as yup from 'yup'
 
-const phoneRegex = /^\+?[\d\s\-\(\)]{9,20}$/
+const phoneRegex = /^\+?[\d\s()-]{9,20}$/
 
 const baseUserSchema = {
     firstName: yup
