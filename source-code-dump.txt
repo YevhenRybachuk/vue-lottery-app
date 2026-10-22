@@ -1,0 +1,711 @@
+﻿=====================================================
+FILE: package.json
+=====================================================
+{
+  "name": "vue-lottery-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "deploy": "npm run build && node -e \"import('node:fs').then(f=>f.copyFileSync('dist/index.html','dist/404.html'))\" && gh-pages -d dist"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.8",
+    "pinia": "^4.1.0",
+    "vee-validate": "^4.15.1",
+    "vue": "^3.5.42",
+    "vue-router": "^5.4.0",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tsconfig/node24": "^24.0.5",
+    "@types/node": "^24.13.4",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
+    "@typescript-eslint/parser": "^8.71.1",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "gh-pages": "^6.3.0",
+    "globals": "^17.13.0",
+    "npm-run-all2": "^9.0.3",
+    "sass": "^1.105.1",
+    "typescript": "~6.0.0",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.2.2",
+    "vite-plugin-vue-devtools": "^8.2.1",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "^3.3.11"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  }
+}
+
+
+
+=====================================================
+FILE: vite.config.ts
+=====================================================
+import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueDevTools from 'vite-plugin-vue-devtools'
+
+// https://vite.dev/config/
+export default defineConfig(({ command }) => ({
+    base: command === 'build' ? '/vue-lottery-app/' : '/',
+    plugins: [
+        vue(),
+        vueDevTools(),
+    ],
+    resolve: {
+        alias: {
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+        },
+    },
+}))
+
+
+
+=====================================================
+FILE: tsconfig.json
+=====================================================
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}
+
+
+
+
+=====================================================
+FILE: src/main.ts
+=====================================================
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+import router from './router'
+import { useAuthStore } from './stores/auth'
+import { onTokensRefreshed } from './api/http-client'
+import './assets/styles/main.scss'
+
+const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia)
+
+const authStore = useAuthStore()
+
+onTokensRefreshed(({ accessToken, refreshToken }) => {
+    authStore.setTokens(accessToken, refreshToken)
+})
+
+if (authStore.accessToken) {
+    try {
+        await authStore.fetchCurrentUser()
+    } catch {
+        // Session cleanup handled in http client
+    }
+}
+
+app.use(router)
+app.mount('#app')
+
+
+
+=====================================================
+FILE: src/App.vue
+=====================================================
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import DefaultLayout from './layouts/DefaultLayout.vue'
+import AuthLayout from './layouts/AuthLayout.vue'
+
+const route = useRoute()
+
+const layout = computed(() => {
+  return route.meta.layout === 'auth' ? AuthLayout : DefaultLayout
+})
+</script>
+
+<template>
+  <component :is="layout">
+    <RouterView />
+  </component>
+</template>
+
+
+
+=====================================================
+FILE: src/router/index.ts
+=====================================================
+import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+
+const router = createRouter({
+    history: createWebHistory(import.meta.env.BASE_URL),
+
+    routes: [
+        {
+            path: '/',
+            name: 'home',
+            component: () => import('../pages/HomePage.vue'),
+            meta: { title: 'Р“РѕР»РѕРІРЅР°' },
+        },
+        {
+            path: '/about',
+            name: 'about',
+            component: () => import('../pages/AboutPage.vue'),
+            meta: { title: 'РџСЂРѕ Р°РІС‚РѕСЂР°' },
+        },
+        {
+            path: '/users',
+            name: 'users',
+            component: () => import('../pages/UsersPage.vue'),
+            meta: { title: 'РљРѕСЂРёСЃС‚СѓРІР°С‡С–', requiresAuth: true },
+        },
+        {
+            path: '/users/create',
+            name: 'user-create',
+            component: () => import('../pages/UserCreatePage.vue'),
+            meta: { title: 'РЎС‚РІРѕСЂРµРЅРЅСЏ РєРѕСЂРёСЃС‚СѓРІР°С‡Р°', requiresAuth: true },
+        },
+        {
+            path: '/users/:id',
+            component: () => import('../layouts/UserLayout.vue'),
+            children: [
+                {
+                    path: '',
+                    name: 'user-details',
+                    component: () => import('../pages/UserDetailsPage.vue'),
+                    props: true,
+                    meta: { title: 'Р”РµС‚Р°Р»С– РєРѕСЂРёСЃС‚СѓРІР°С‡Р°', requiresAuth: true },
+                },
+                {
+                    path: 'edit',
+                    name: 'user-edit',
+                    component: () => import('../pages/UserEditPage.vue'),
+                    props: true,
+                    meta: { title: 'Р РµРґР°РіСѓРІР°РЅРЅСЏ РєРѕСЂРёСЃС‚СѓРІР°С‡Р°', requiresAuth: true },
+                },
+            ],
+        },
+        {
+            path: '/login',
+            name: 'login',
+            component: () => import('../pages/LoginPage.vue'),
+            meta: { title: 'Р’С…С–Рґ', layout: 'auth' },
+        },
+        {
+            path: '/:pathMatch(.*)*',
+            name: 'not-found',
+            component: () => import('../pages/NotFoundPage.vue'),
+            meta: { title: 'РЎС‚РѕСЂС–РЅРєСѓ РЅРµ Р·РЅР°Р№РґРµРЅРѕ' },
+        },
+    ],
+})
+
+router.beforeEach((to) => {
+    const authStore = useAuthStore()
+
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+        return { name: 'login', query: { redirect: to.fullPath } }
+    }
+    if (to.name === 'login' && authStore.isAuthenticated) {
+        return { name: 'users' }
+    }
+})
+
+router.afterEach((to) => {
+    document.title = `${String(to.meta.title ?? 'Vue Lottery App')} | Vue Lottery App`
+})
+
+export default router
+
+
+
+=====================================================
+FILE: src/stores/auth.ts
+=====================================================
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { ServiceProvider } from '../services/service-provider'
+import type { AuthUser, LoginCredentials } from '../types/auth'
+import type { User } from '../types/user'
+
+export const useAuthStore = defineStore('auth', () => {
+    const user = ref<AuthUser | null>(
+        JSON.parse(localStorage.getItem('auth_user') || 'null')
+    )
+    const accessToken = ref<string | null>(
+        localStorage.getItem('access_token')
+    )
+    const refreshToken = ref<string | null>(
+        localStorage.getItem('refresh_token')
+    )
+
+    const isAuthenticated = computed(() => Boolean(accessToken.value))
+
+    function setTokens(access: string, refresh: string) {
+        accessToken.value = access
+        refreshToken.value = refresh
+        localStorage.setItem('access_token', access)
+        localStorage.setItem('refresh_token', refresh)
+    }
+
+    function setUser(userData: AuthUser | User) {
+        user.value = userData as AuthUser
+        localStorage.setItem('auth_user', JSON.stringify(userData))
+    }
+
+    function clearAuth() {
+        user.value = null
+        accessToken.value = null
+        refreshToken.value = null
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('auth_user')
+    }
+
+    async function login(credentials: LoginCredentials) {
+        const response = await ServiceProvider.auth.login(credentials)
+        const { accessToken: access, refreshToken: refresh, ...userData } = response
+
+        setTokens(access, refresh)
+        setUser(userData)
+        return response
+    }
+
+    async function fetchCurrentUser() {
+        if (!accessToken.value) return
+        try {
+            const currentUser = await ServiceProvider.auth.getCurrentUser()
+            setUser(currentUser)
+        } catch {
+            logout()
+        }
+    }
+
+    function logout() {
+        clearAuth()
+    }
+
+    return {
+        user,
+        accessToken,
+        refreshToken,
+        isAuthenticated,
+        login,
+        logout,
+        fetchCurrentUser,
+        setTokens,
+        clearAuth
+    }
+})
+
+
+
+=====================================================
+FILE: src/api/http-client.ts
+=====================================================
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://dummyjson.com'
+
+type TokensRefreshedCallback = (tokens: { accessToken: string; refreshToken: string }) => void
+
+let onTokensRefreshedCallback: TokensRefreshedCallback | null = null
+let refreshPromise: Promise<string> | null = null
+
+export function onTokensRefreshed(cb: TokensRefreshedCallback) {
+    onTokensRefreshedCallback = cb
+}
+
+function clearSessionAndRedirect() {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('auth_user')
+    const baseUrl = import.meta.env.BASE_URL || '/'
+    const loginUrl = baseUrl.endsWith('/') ? `${baseUrl}login` : `${baseUrl}/login`
+    window.location.href = loginUrl
+}
+
+async function performTokenRefresh(): Promise<string> {
+    const refreshToken = localStorage.getItem('refresh_token')
+
+    if (!refreshToken) {
+        clearSessionAndRedirect()
+        throw new Error('No refresh token available')
+    }
+
+    try {
+        const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken, expiresInMins: 60 })
+        })
+
+        if (!refreshResponse.ok) {
+            clearSessionAndRedirect()
+            throw new Error('Failed to refresh token')
+        }
+
+        const data = await refreshResponse.json()
+        localStorage.setItem('access_token', data.accessToken)
+        localStorage.setItem('refresh_token', data.refreshToken)
+
+        if (onTokensRefreshedCallback) {
+            onTokensRefreshedCallback({
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken
+            })
+        }
+
+        return data.accessToken
+    } catch (err) {
+        clearSessionAndRedirect()
+        throw err
+    }
+}
+
+export async function http<T>(
+    path: string,
+    options: RequestInit = {}
+): Promise<T> {
+    let token = localStorage.getItem('access_token')
+
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string>)
+    }
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+    }
+
+    let response = await fetch(`${BASE_URL}${path}`, {
+        ...options,
+        headers
+    })
+
+    if (response.status === 401 && !path.includes('/auth/login') && !path.includes('/auth/refresh')) {
+        if (!refreshPromise) {
+            refreshPromise = performTokenRefresh().finally(() => {
+                refreshPromise = null
+            })
+        }
+
+        try {
+            token = await refreshPromise
+            headers['Authorization'] = `Bearer ${token}`
+            response = await fetch(`${BASE_URL}${path}`, {
+                ...options,
+                headers
+            })
+        } catch {
+            throw new Error('Unauthorized')
+        }
+    }
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    return response.json() as Promise<T>
+}
+
+
+
+=====================================================
+FILE: src/services/interfaces.ts
+=====================================================
+export interface PaginatedResult<T> {
+    users: T[]
+    total: number
+}
+
+export interface Readable<T> {
+    getAll(params?: {
+        limit?: number
+        skip?: number
+        q?: string
+    }): Promise<PaginatedResult<T>>
+
+    getById(id: number): Promise<T>
+}
+
+export interface Creatable<T, TCreate> {
+    create(data: TCreate): Promise<T>
+}
+
+export interface Editable<T, TUpdate> {
+    update(id: number, data: TUpdate): Promise<T>
+}
+
+export interface Deletable<T> {
+    delete(id: number): Promise<void>
+}
+
+
+
+=====================================================
+FILE: src/services/service-provider.ts
+=====================================================
+import { UserService } from './user.service'
+import { AuthService } from './auth.service'
+
+export const ServiceProvider = {
+    users: new UserService(),
+    auth: new AuthService()
+}
+
+
+
+=====================================================
+FILE: src/services/user.service.ts
+=====================================================
+import { http } from '../api/http-client'
+import type { User, CreateUserDto, UpdateUserDto } from '../types/user'
+import type {
+    Readable,
+    Creatable,
+    Editable,
+    Deletable,
+    PaginatedResult,
+} from './interfaces'
+
+interface UsersResponse {
+    users: User[]
+    total: number
+    skip: number
+    limit: number
+}
+
+const STORAGE_MODIFIED_USERS = 'local_modified_users'
+const STORAGE_CREATED_USERS = 'local_created_users'
+const STORAGE_DELETED_USERS = 'local_deleted_users'
+
+function getSavedObject<T>(key: string, fallback: T): T {
+    try {
+        const data = localStorage.getItem(key)
+        return data ? JSON.parse(data) : fallback
+    } catch {
+        return fallback
+    }
+}
+
+export class UserService
+    implements
+        Readable<User>,
+        Creatable<User, CreateUserDto>,
+        Editable<User, UpdateUserDto>,
+        Deletable<User>
+{
+    private modifiedUsers: Map<number, User>
+    private createdUsers: User[]
+    private deletedUserIds: Set<number>
+
+    constructor() {
+        this.modifiedUsers = new Map()
+        const savedMods = getSavedObject<Record<number, User>>(STORAGE_MODIFIED_USERS, {})
+        Object.entries(savedMods).forEach(([id, user]) => {
+            this.modifiedUsers.set(Number(id), user)
+        })
+
+        this.createdUsers = getSavedObject<User[]>(STORAGE_CREATED_USERS, [])
+        this.deletedUserIds = new Set(getSavedObject<number[]>(STORAGE_DELETED_USERS, []))
+    }
+
+    private saveState() {
+        const modsObj: Record<number, User> = {}
+        this.modifiedUsers.forEach((user, id) => {
+            const copy = { ...user } as Record<string, unknown>
+            delete copy['password']
+            modsObj[id] = copy as unknown as User
+        })
+
+        const cleanedCreatedUsers = this.createdUsers.map(user => {
+            const copy = { ...user } as Record<string, unknown>
+            delete copy['password']
+            return copy as unknown as User
+        })
+
+        localStorage.setItem(STORAGE_MODIFIED_USERS, JSON.stringify(modsObj))
+        localStorage.setItem(STORAGE_CREATED_USERS, JSON.stringify(cleanedCreatedUsers))
+        localStorage.setItem(STORAGE_DELETED_USERS, JSON.stringify(Array.from(this.deletedUserIds)))
+    }
+
+    async getAll(params: { limit?: number; skip?: number; q?: string } = {}): Promise<PaginatedResult<User>> {
+        const query = new URLSearchParams()
+
+        if (params.limit !== undefined) query.set('limit', String(params.limit))
+        if (params.skip !== undefined) query.set('skip', String(params.skip))
+        if (params.q) query.set('q', params.q)
+
+        const endpoint = params.q ? '/users/search' : '/users'
+        const suffix = query.size > 0 ? `?${query.toString()}` : ''
+        const response = await http<UsersResponse>(`${endpoint}${suffix}`)
+
+        let usersList = response.users
+            .filter(u => !this.deletedUserIds.has(u.id))
+            .map(u => this.modifiedUsers.get(u.id) || u)
+
+        const matchingCreated = this.createdUsers.filter(u => {
+            if (this.deletedUserIds.has(u.id)) return false
+            if (!params.q) return true
+            const qLower = params.q.toLowerCase()
+            return (
+                u.firstName.toLowerCase().includes(qLower) ||
+                u.lastName.toLowerCase().includes(qLower) ||
+                u.email.toLowerCase().includes(qLower) ||
+                u.username.toLowerCase().includes(qLower)
+            )
+        })
+
+        if (params.skip === 0 || !params.skip) {
+            usersList = [...matchingCreated, ...usersList]
+        }
+
+        const deletedCount = params.q
+            ? response.users.filter(u => this.deletedUserIds.has(u.id)).length
+            : this.deletedUserIds.size
+
+        const calculatedTotal = response.total + matchingCreated.length - deletedCount
+
+        return {
+            users: usersList,
+            total: Math.max(0, calculatedTotal)
+        }
+    }
+
+    async getById(id: number): Promise<User> {
+        if (this.deletedUserIds.has(id)) {
+            throw new Error('РљРѕСЂРёСЃС‚СѓРІР°С‡Р° Р±СѓР»Рѕ РІРёРґР°Р»РµРЅРѕ')
+        }
+
+        const created = this.createdUsers.find(u => u.id === id)
+        if (created) return this.modifiedUsers.get(id) || created
+
+        if (this.modifiedUsers.has(id)) {
+            return this.modifiedUsers.get(id)!
+        }
+
+        const user = await http<User>(`/users/${id}`)
+        return this.modifiedUsers.get(id) || user
+    }
+
+    async create(data: CreateUserDto): Promise<User> {
+        const dataWithoutPassword: Record<string, unknown> = { ...data }
+        delete dataWithoutPassword['password']
+
+        const apiResult = await http<User>('/users/add', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+
+        const newId = Date.now()
+        const newUser: User = {
+            ...dataWithoutPassword,
+            ...apiResult,
+            id: newId
+        } as unknown as User
+
+        this.createdUsers.unshift(newUser)
+        this.saveState()
+
+        return newUser
+    }
+
+    async update(id: number, data: UpdateUserDto): Promise<User> {
+        const dataWithoutPassword: Record<string, unknown> = { ...data }
+        delete dataWithoutPassword['password']
+
+        const apiResult = await http<User>(`/users/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        })
+
+        const existing = await this.getById(id)
+        const updatedUser: User = {
+            ...existing,
+            ...apiResult,
+            ...dataWithoutPassword,
+            id
+        } as unknown as User
+
+        this.modifiedUsers.set(id, updatedUser)
+
+        const createdIdx = this.createdUsers.findIndex(u => u.id === id)
+        if (createdIdx !== -1) {
+            this.createdUsers[createdIdx] = updatedUser
+        }
+
+        this.saveState()
+        return updatedUser
+    }
+
+    async delete(id: number): Promise<void> {
+        await http<unknown>(`/users/${id}`, {
+            method: 'DELETE',
+        })
+
+        const wasCreated = this.createdUsers.some(u => u.id === id)
+        this.createdUsers = this.createdUsers.filter(u => u.id !== id)
+        if (!wasCreated) {
+            this.deletedUserIds.add(id)
+        }
+
+        this.modifiedUsers.delete(id)
+        this.saveState()
+    }
+}
+
+
+
+=====================================================
+FILE: src/services/auth.service.ts
+=====================================================
+import { http } from '../api/http-client'
+import type { AuthResponse, LoginCredentials, RefreshTokenResponse } from '../types/auth'
+import type { User } from '../types/user'
+
+export class AuthService {
+    async login(credentials: LoginCredentials): Promise<AuthResponse> {
+        return http<AuthResponse>('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials)
+        })
+    }
+
+    async getCurrentUser(): Promise<User> {
+        return http<User>('/auth/me', {
+            method: 'GET'
+        })
+    }
+
+    async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+        return http<RefreshTokenResponse>('/auth/refresh', {
+            method: 'POST',
+            body: JSON.stringify({
+                refreshToken,
+                expiresInMins: 60
+            })
+        })
+    }
+}
+
+
+

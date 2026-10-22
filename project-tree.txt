@@ -1,0 +1,151 @@
+﻿Root
+├── .idea
+│   ├── .gitignore
+│   ├── modules.xml
+│   ├── vcs.xml
+│   ├── vue-lottery-app.iml
+│   ├── watcherTasks.xml
+│   └── workspace.xml
+├── .vscode
+│   ├── extensions.json
+│   └── settings.json
+├── public
+│   └── favicon.ico
+├── src
+│   ├── app
+│   │   ├── config
+│   │   │   ├── router
+│   │   │   │   ├── guards.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── service-provider.ts
+│   │   │   ├── services.ts
+│   │   │   └── ui.ts
+│   │   ├── styles
+│   │   │   ├── main.scss
+│   │   │   ├── _bootstrap.scss
+│   │   │   └── _variables.scss
+│   │   ├── App.vue
+│   │   └── main.ts
+│   ├── entities
+│   │   ├── session
+│   │   │   ├── api
+│   │   │   │   └── auth.service.ts
+│   │   │   ├── model
+│   │   │   │   ├── session.store.ts
+│   │   │   │   └── types.ts
+│   │   │   └── index.ts
+│   │   └── user
+│   │       ├── api
+│   │       │   └── user.service.ts
+│   │       ├── model
+│   │       │   ├── types.ts
+│   │       │   └── users.store.ts
+│   │       └── index.ts
+│   ├── features
+│   │   ├── auth
+│   │   │   ├── model
+│   │   │   │   └── auth.ts
+│   │   │   └── index.ts
+│   │   ├── registration
+│   │   │   ├── ui
+│   │   │   │   └── RegistrationForm.vue
+│   │   │   └── index.ts
+│   │   ├── search-users
+│   │   │   ├── ui
+│   │   │   │   └── SearchBar.vue
+│   │   │   └── index.ts
+│   │   └── user-form
+│   │       ├── model
+│   │       │   └── user.schema.ts
+│   │       ├── ui
+│   │       │   └── UserForm.vue
+│   │       └── index.ts
+│   ├── pages
+│   │   ├── about
+│   │   │   ├── ui
+│   │   │   │   └── AboutPage.vue
+│   │   │   └── index.ts
+│   │   ├── home
+│   │   │   ├── ui
+│   │   │   │   └── HomePage.vue
+│   │   │   └── index.ts
+│   │   ├── login
+│   │   │   ├── ui
+│   │   │   │   └── LoginPage.vue
+│   │   │   └── index.ts
+│   │   ├── not-found
+│   │   │   ├── ui
+│   │   │   │   └── NotFoundPage.vue
+│   │   │   └── index.ts
+│   │   ├── user-details
+│   │   │   ├── ui
+│   │   │   │   ├── UserCreatePage.vue
+│   │   │   │   ├── UserDetailsPage.vue
+│   │   │   │   ├── UserEditPage.vue
+│   │   │   │   └── UserLayout.vue
+│   │   │   └── index.ts
+│   │   └── users
+│   │       ├── ui
+│   │       │   └── UsersPage.vue
+│   │       └── index.ts
+│   ├── shared
+│   │   ├── api
+│   │   │   ├── http-client.ts
+│   │   │   ├── index.ts
+│   │   │   └── interfaces.ts
+│   │   ├── config
+│   │   │   ├── index.ts
+│   │   │   └── participant.ts
+│   │   └── ui
+│   │       ├── AppButton
+│   │       │   └── BaseButton.vue
+│   │       ├── AppInput
+│   │       │   └── BaseInput.vue
+│   │       ├── AppModal
+│   │       │   └── BaseModal.vue
+│   │       └── index.ts
+│   └── widgets
+│       ├── app-footer
+│       │   ├── ui
+│       │   │   └── AppFooter.vue
+│       │   └── index.ts
+│       ├── app-header
+│       │   ├── ui
+│       │   │   ├── AppHeader.vue
+│       │   │   ├── AppNavigation.vue
+│       │   │   └── Logo.vue
+│       │   └── index.ts
+│       ├── app-layouts
+│       │   ├── ui
+│       │   │   ├── AuthLayout.vue
+│       │   │   ├── DefaultLayout.vue
+│       │   │   └── UserLayout.vue
+│       │   └── index.ts
+│       ├── participants-table
+│       │   ├── ui
+│       │   │   └── ParticipantsTable.vue
+│       │   └── index.ts
+│       ├── users-table
+│       │   ├── ui
+│       │   │   └── UsersTable.vue
+│       │   └── index.ts
+│       └── winners-block
+│           ├── ui
+│           │   ├── Winner.vue
+│           │   └── WinnersBlock.vue
+│           └── index.ts
+├── .env
+├── .env.example
+├── .gitignore
+├── env.d.ts
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── project-tree.txt
+├── README.md
+├── source-code-dump.txt
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
