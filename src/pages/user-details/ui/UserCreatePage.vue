@@ -18,12 +18,12 @@ async function handleSubmit(values: CreateUserDto | UpdateUserDto) {
   try {
     const userService = new UserService()
     await userService.create(values as CreateUserDto)
-    successMessage.value = 'РљРѕСЂРёСЃС‚СѓРІР°С‡Р° СѓСЃРїС–С€РЅРѕ СЃС‚РІРѕСЂРµРЅРѕ!'
+    successMessage.value = 'Користувача успішно створено!'
     setTimeout(() => {
       router.push('/users')
     }, 1000)
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'РќРµ РІРґР°Р»РѕСЃСЏ СЃС‚РІРѕСЂРёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р°'
+    error.value = err instanceof Error ? err.message : 'Не вдалося створити користувача'
   } finally {
     isSaving.value = false
   }
@@ -33,14 +33,14 @@ async function handleSubmit(values: CreateUserDto | UpdateUserDto) {
 <template>
   <section class="user-create container py-4">
     <RouterLink to="/users" class="btn btn-outline-secondary btn-sm mb-3">
-      в†ђ Р”Рѕ СЃРїРёСЃРєСѓ РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ
+      ← До списку користувачів
     </RouterLink>
 
-    <h1 class="h3 mb-4">РЎС‚РІРѕСЂРµРЅРЅСЏ РЅРѕРІРѕРіРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡Р°</h1>
+    <h1 class="h3 mb-4">Створення нового користувача</h1>
 
     <UserForm
         :is-saving="isSaving"
-        submit-label="РЎС‚РІРѕСЂРёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р°"
+        submit-label="Створити користувача"
         :error="error"
         :success-message="successMessage"
         @submit="handleSubmit"

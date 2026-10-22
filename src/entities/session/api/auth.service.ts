@@ -1,5 +1,5 @@
 import { http } from '@/shared/api'
-import type { AuthResponse, LoginCredentials, RefreshTokenResponse } from '@/entities/session'
+import type { AuthResponse, LoginCredentials, RefreshTokenResponse } from '../model/types'
 import type { AuthUser } from '../model/types'
 
 export class AuthService {

@@ -52,7 +52,7 @@ async function loadUsers() {
     totalUsers.value = res.total
   } catch (err) {
     if (requestId !== currentRequestId) return
-    error.value = err instanceof Error ? err.message : 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ'
+    error.value = err instanceof Error ? err.message : 'Не вдалося завантажити користувачів'
   } finally {
     if (requestId === currentRequestId) {
       isLoading.value = false
@@ -111,7 +111,7 @@ async function deleteUser(id: number) {
     await userService.delete(id)
     loadUsers()
   } catch (err) {
-    alert(err instanceof Error ? err.message : 'РќРµ РІРґР°Р»РѕСЃСЏ РІРёРґР°Р»РёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р°')
+    alert(err instanceof Error ? err.message : 'Не вдалося видалити користувача')
   }
 }
 </script>
@@ -120,12 +120,12 @@ async function deleteUser(id: number) {
   <section class="users-page container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h1 class="mb-1">РљРѕСЂРёСЃС‚СѓРІР°С‡С–</h1>
-        <p class="text-muted mb-0">РЎРїРёСЃРѕРє РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ Р· REST API DummyJSON.</p>
+        <h1 class="mb-1">Користувачі</h1>
+        <p class="text-muted mb-0">Список користувачів з REST API DummyJSON.</p>
       </div>
 
       <RouterLink to="/users/create" class="btn btn-success">
-        + РЎС‚РІРѕСЂРёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р°
+        + Створити користувача
       </RouterLink>
     </div>
 
@@ -133,21 +133,21 @@ async function deleteUser(id: number) {
         v-model="searchInput"
         class="form-control mb-4"
         type="search"
-        placeholder="РџРѕС€СѓРє Р·Р° С–Рј'СЏРј, email Р°Р±Рѕ username..."
-        aria-label="РџРѕС€СѓРє РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ"
+        placeholder="Пошук за ім'ям, email або username..."
+        aria-label="Пошук користувачів"
     />
 
-    <p v-if="isLoading" class="text-secondary py-3">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ...</p>
+    <p v-if="isLoading" class="text-secondary py-3">Завантаження користувачів...</p>
 
     <div v-else-if="error" class="alert alert-danger" role="alert">
       <p class="mb-2">{{ error }}</p>
       <button type="button" class="btn btn-outline-danger btn-sm" @click="loadUsers">
-        РЎРїСЂРѕР±СѓРІР°С‚Рё С‰Рµ СЂР°Р·
+        Спробувати ще раз
       </button>
     </div>
 
     <template v-else>
-      <p class="text-muted">Р—РЅР°Р№РґРµРЅРѕ РєРѕСЂРёСЃС‚СѓРІР°С‡С–РІ: {{ totalUsers }}</p>
+      <p class="text-muted">Знайдено користувачів: {{ totalUsers }}</p>
 
       <UsersTable
           v-if="users.length"
@@ -155,7 +155,7 @@ async function deleteUser(id: number) {
           @delete="deleteUser"
       />
 
-      <p v-else class="text-muted py-3">РљРѕСЂРёСЃС‚СѓРІР°С‡С–РІ РЅРµ Р·РЅР°Р№РґРµРЅРѕ.</p>
+      <p v-else class="text-muted py-3">Користувачів не знайдено.</p>
 
       <div class="d-flex align-items-center justify-content-center gap-3 mt-4">
         <button
@@ -164,10 +164,10 @@ async function deleteUser(id: number) {
             :disabled="parseQuery().page <= 1"
             @click="previousPage"
         >
-          РќР°Р·Р°Рґ
+          Назад
         </button>
 
-        <span>РЎС‚РѕСЂС–РЅРєР° {{ parseQuery().page }} Р· {{ totalPages }}</span>
+        <span>Сторінка {{ parseQuery().page }} з {{ totalPages }}</span>
 
         <button
             type="button"
@@ -175,7 +175,7 @@ async function deleteUser(id: number) {
             :disabled="parseQuery().page >= totalPages"
             @click="nextPage"
         >
-          Р”Р°Р»С–
+          Далі
         </button>
       </div>
     </template>

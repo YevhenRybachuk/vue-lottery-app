@@ -1,5 +1,5 @@
 import { http } from '@/shared/api'
-import type { User, CreateUserDto, UpdateUserDto } from '@/entities/user'
+import type { User, CreateUserDto, UpdateUserDto } from '../model/types'
 import type {
     Readable,
     Creatable,

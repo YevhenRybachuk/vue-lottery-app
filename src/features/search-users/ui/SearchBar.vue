@@ -34,7 +34,7 @@ onBeforeUnmount(() => {
         v-model="searchQuery"
         id="participant-search"
         name="participant-search"
-        placeholder="РџРѕС€СѓРє Р·Р° С–РјвЂ™СЏРј..."
+        placeholder="Пошук за ім’ям..."
     />
   </div>
 </template>

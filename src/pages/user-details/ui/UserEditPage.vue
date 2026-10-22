@@ -19,7 +19,7 @@ const initialValues = ref<Partial<CreateUserDto>>({})
 async function loadUser() {
   const userId = Number(props.id)
   if (!Number.isInteger(userId) || userId <= 0) {
-    error.value = 'РќРµРєРѕСЂРµРєС‚РЅРёР№ ID РєРѕСЂРёСЃС‚СѓРІР°С‡Р°'
+    error.value = 'Некоректний ID користувача'
     return
   }
 
@@ -40,7 +40,7 @@ async function loadUser() {
       phone: user.phone || ''
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р°'
+    error.value = err instanceof Error ? err.message : 'Не вдалося завантажити користувача'
   } finally {
     isLoading.value = false
   }
@@ -57,13 +57,13 @@ async function handleSubmit(values: UpdateUserDto) {
   try {
     const userService = new UserService()
     await userService.update(Number(props.id), values)
-    successMessage.value = 'Р—РјС–РЅРё Р·Р±РµСЂРµР¶РµРЅРѕ СѓСЃРїС–С€РЅРѕ!'
+    successMessage.value = 'Зміни збережено успішно!'
 
     setTimeout(() => {
       router.push(`/users/${props.id}`)
     }, 1000)
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р±РµСЂРµРіС‚Рё Р·РјС–РЅРё'
+    error.value = err instanceof Error ? err.message : 'Не вдалося зберегти зміни'
   } finally {
     isSaving.value = false
   }
@@ -73,12 +73,12 @@ async function handleSubmit(values: UpdateUserDto) {
 <template>
   <section class="user-edit container py-4">
     <RouterLink :to="`/users/${id}`" class="btn btn-outline-secondary btn-sm mb-3">
-      в†ђ РќР°Р·Р°Рґ РґРѕ РґРµС‚Р°Р»РµР№
+      ← Назад до деталей
     </RouterLink>
 
-    <h1 class="h3 mb-4">Р РµРґР°РіСѓРІР°РЅРЅСЏ РєРѕСЂРёСЃС‚СѓРІР°С‡Р° #{{ id }}</h1>
+    <h1 class="h3 mb-4">Редагування користувача #{{ id }}</h1>
 
-    <p v-if="isLoading">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ РґР°РЅРёС…...</p>
+    <p v-if="isLoading">Завантаження даних...</p>
 
     <div v-else-if="error && !initialValues.firstName" class="alert alert-danger" role="alert">
       {{ error }}
@@ -88,7 +88,7 @@ async function handleSubmit(values: UpdateUserDto) {
         v-else
         :initial-values="initialValues"
         :is-saving="isSaving"
-        submit-label="Р—Р±РµСЂРµРіС‚Рё Р·РјС–РЅРё"
+        submit-label="Зберегти зміни"
         :is-edit-mode="true"
         :error="error"
         :success-message="successMessage"

@@ -4,7 +4,10 @@ import App from './App.vue'
 import router from '@/app/providers/router'
 import { useAuthStore } from '@/features/auth'
 import { http, onTokensRefreshed } from '@/shared/api'
+import { registerServices } from './providers/services'
 import './styles/main.scss'
+
+registerServices()
 
 const app = createApp(App)
 const pinia = createPinia()

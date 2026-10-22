@@ -37,12 +37,12 @@ function confirmDelete() {
     <table class="table table-striped table-hover align-middle">
       <thead>
       <tr>
-        <th scope="col">РђРІР°С‚Р°СЂ</th>
-        <th scope="col">РџР†Р‘</th>
+        <th scope="col">Аватар</th>
+        <th scope="col">ПІБ</th>
         <th scope="col">Email</th>
         <th scope="col">Username</th>
-        <th scope="col">Р’С–Рє</th>
-        <th scope="col" class="text-end">Р”С–С—</th>
+        <th scope="col">Вік</th>
+        <th scope="col" class="text-end">Дії</th>
       </tr>
       </thead>
       <tbody>
@@ -74,17 +74,17 @@ function confirmDelete() {
         <td class="text-end">
           <div class="d-inline-flex gap-1">
             <RouterLink :to="`/users/${user.id}`" class="btn btn-sm btn-outline-primary">
-              Р”РµС‚Р°Р»С–
+              Деталі
             </RouterLink>
             <RouterLink :to="`/users/${user.id}/edit`" class="btn btn-sm btn-outline-secondary">
-              Р РµРґР°РіСѓРІР°С‚Рё
+              Редагувати
             </RouterLink>
             <button
                 type="button"
                 class="btn btn-sm btn-outline-danger"
                 @click="openDeleteModal(user)"
             >
-              Р’РёРґР°Р»РёС‚Рё
+              Видалити
             </button>
           </div>
         </td>
@@ -94,19 +94,19 @@ function confirmDelete() {
 
     <BaseModal v-model="showDeleteModal">
       <template #header>
-        <h5 class="modal-title mb-0">РџС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ РІРёРґР°Р»РµРЅРЅСЏ</h5>
+        <h5 class="modal-title mb-0">Підтвердження видалення</h5>
       </template>
 
       <p v-if="userToDelete" class="mb-0">
-        Р’Рё РґС–Р№СЃРЅРѕ Р±Р°Р¶Р°С”С‚Рµ РІРёРґР°Р»РёС‚Рё РєРѕСЂРёСЃС‚СѓРІР°С‡Р° <strong>{{ userToDelete.firstName }} {{ userToDelete.lastName }}</strong> (@{{ userToDelete.username }})?
+        Ви дійсно бажаєте видалити користувача <strong>{{ userToDelete.firstName }} {{ userToDelete.lastName }}</strong> (@{{ userToDelete.username }})?
       </p>
 
       <template #footer>
         <button type="button" class="btn btn-secondary" @click="closeDeleteModal">
-          РќС–
+          Ні
         </button>
         <button type="button" class="btn btn-danger" @click="confirmDelete">
-          РўР°Рє
+          Так
         </button>
       </template>
     </BaseModal>
