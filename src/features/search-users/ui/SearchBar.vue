@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import { BaseInput } from '@/shared/ui'
+import { AppInput } from '@/shared/ui'
 
 const searchQuery = ref('')
 
@@ -30,7 +30,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="search-bar mb-4">
-    <BaseInput
+    <AppInput
         v-model="searchQuery"
         id="participant-search"
         name="participant-search"

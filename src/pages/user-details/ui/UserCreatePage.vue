@@ -1,49 +1,33 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUsersStore, type CreateUserDto, type UpdateUserDto } from '@/entities/user'
 import { UserForm } from '@/features/user-form'
-import type { CreateUserDto, UpdateUserDto } from '@/entities/user'
-import { UserService } from '@/entities/user'
+import { useAppToast } from '@/shared/ui'
 
 const router = useRouter()
+const usersStore = useUsersStore()
+const toast = useAppToast()
 const isSaving = ref(false)
-const error = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
 
-async function handleSubmit(values: CreateUserDto | UpdateUserDto) {
-  isSaving.value = true
-  error.value = null
-  successMessage.value = null
-
-  try {
-    const userService = new UserService()
-    await userService.create(values as CreateUserDto)
-    successMessage.value = 'Користувача успішно створено!'
-    setTimeout(() => {
-      router.push('/users')
-    }, 1000)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося створити користувача'
-  } finally {
-    isSaving.value = false
-  }
+async function handleSubmit(values: CreateUserDto | UpdateUserDto): Promise<void> {
+    isSaving.value = true
+    try {
+        await usersStore.createUser(values as CreateUserDto)
+        toast.success('Користувача створено')
+        await router.push('/users')
+    } catch (cause) {
+        toast.error('Не вдалося створити користувача', cause instanceof Error ? cause.message : undefined)
+    } finally {
+        isSaving.value = false
+    }
 }
 </script>
 
 <template>
-  <section class="user-create container py-4">
-    <RouterLink to="/users" class="btn btn-outline-secondary btn-sm mb-3">
-      ← До списку користувачів
-    </RouterLink>
-
-    <h1 class="h3 mb-4">Створення нового користувача</h1>
-
-    <UserForm
-        :is-saving="isSaving"
-        submit-label="Створити користувача"
-        :error="error"
-        :success-message="successMessage"
-        @submit="handleSubmit"
-    />
-  </section>
+    <section class="container py-4">
+        <RouterLink to="/users" class="btn btn-outline-secondary btn-sm mb-3">← До списку користувачів</RouterLink>
+        <h1 class="h3 mb-4">Створення нового користувача</h1>
+        <UserForm :is-saving="isSaving" submit-label="Створити користувача" @submit="handleSubmit" />
+    </section>
 </template>

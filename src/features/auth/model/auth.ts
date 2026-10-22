@@ -1,66 +1,41 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { AuthUser, LoginCredentials } from '@/entities/session'
+import { storeToRefs } from 'pinia'
+import { ServiceProvider } from '@/shared/api'
+import { useSessionStore, type AuthUser, type AuthService, type LoginCredentials } from '@/entities/session'
 import type { User } from '@/entities/user'
-import { AuthService } from '@/entities/session'
 
 export const useAuthStore = defineStore('auth', () => {
-    const user = ref<AuthUser | null>(
-        JSON.parse(localStorage.getItem('auth_user') || 'null')
-    )
-    const accessToken = ref<string | null>(
-        localStorage.getItem('access_token')
-    )
-    const refreshToken = ref<string | null>(
-        localStorage.getItem('refresh_token')
-    )
-
-    const isAuthenticated = computed(() => Boolean(accessToken.value))
-
-    function setTokens(access: string, refresh: string) {
-        accessToken.value = access
-        refreshToken.value = refresh
-        localStorage.setItem('access_token', access)
-        localStorage.setItem('refresh_token', refresh)
-    }
-
-    function setUser(userData: AuthUser | User) {
-        user.value = userData as AuthUser
-        localStorage.setItem('auth_user', JSON.stringify(userData))
-    }
-
-    function clearAuth() {
-        user.value = null
-        accessToken.value = null
-        refreshToken.value = null
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('auth_user')
-    }
+    const session = useSessionStore()
+    const { user, accessToken, refreshToken, isAuthenticated } = storeToRefs(session)
 
     async function login(credentials: LoginCredentials) {
-        const authService = new AuthService()
-        const response = await authService.login(credentials)
-        const { accessToken: access, refreshToken: refresh, ...userData } = response
-
-        setTokens(access, refresh)
-        setUser(userData)
+        const response = await ServiceProvider.get<AuthService>('auth').login(credentials)
+        const { accessToken, refreshToken, ...user } = response
+        session.setSession(accessToken, refreshToken, user)
         return response
     }
 
-    async function fetchCurrentUser() {
+    async function fetchCurrentUser(): Promise<void> {
         if (!accessToken.value) return
         try {
-            const authService = new AuthService()
-            const currentUser = await authService.getCurrentUser()
-            setUser(currentUser)
-        } catch {
+            const user = await ServiceProvider.get<AuthService>('auth').getCurrentUser()
+            session.setUser(user)
+        } catch (error) {
             logout()
+            throw error
         }
     }
 
-    function logout() {
-        clearAuth()
+    function setTokens(accessToken: string, refreshToken: string): void {
+        session.setSession(accessToken, refreshToken, user.value ?? undefined)
+    }
+
+    function setUser(user: AuthUser | User): void {
+        session.setUser(user as AuthUser)
+    }
+
+    function logout(): void {
+        session.clearSession()
     }
 
     return {
@@ -72,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
         logout,
         fetchCurrentUser,
         setTokens,
-        clearAuth
+        setUser,
+        clearAuth: logout,
     }
 })

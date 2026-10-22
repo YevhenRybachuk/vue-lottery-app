@@ -1,95 +1,67 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useForm, useField } from 'vee-validate'
 import * as yup from 'yup'
 import { useAuthStore } from '@/features/auth'
+import { AppButton, AppInput, useAppToast } from '@/shared/ui'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-
-const errorMessage = ref<string | null>(null)
-const isLoading = ref(false)
+const toast = useAppToast()
 
 const schema = yup.object({
-  username: yup.string().required('Введіть username'),
-  password: yup.string().min(6, 'Пароль має бути не менше 6 символів').required('Введіть пароль')
+    username: yup.string().required('Введіть username'),
+    password: yup.string().min(6, 'Пароль має містити щонайменше 6 символів').required('Введіть пароль'),
 })
 
-const { handleSubmit, errors } = useForm({
-  validationSchema: schema,
-  initialValues: {
-    username: 'emilys',
-    password: 'emilyspass'
-  }
+const { handleSubmit, errors, isSubmitting } = useForm({
+    validationSchema: schema,
+    initialValues: { username: 'emilys', password: 'emilyspass' },
 })
-
 const { value: username } = useField<string>('username')
 const { value: password } = useField<string>('password')
 
 const onSubmit = handleSubmit(async (values) => {
-  isLoading.value = true
-  errorMessage.value = null
-
-  try {
-    await authStore.login(values)
-    const rawRedirect = route.query.redirect
-    let redirectPath = '/users'
-    if (typeof rawRedirect === 'string' && rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')) {
-      redirectPath = rawRedirect
+    try {
+        await authStore.login(values)
+        const redirect = route.query.redirect
+        const target = typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')
+            ? redirect
+            : '/users'
+        await router.push(target)
+    } catch (cause) {
+        toast.error('Помилка авторизації', cause instanceof Error ? cause.message : 'Не вдалося увійти')
     }
-    router.push(redirectPath)
-  } catch (err) {
-    errorMessage.value = err instanceof Error ? err.message : 'Невдала спроба авторизації'
-  } finally {
-    isLoading.value = false
-  }
 })
 </script>
 
 <template>
-  <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
-    <h1 class="h3 mb-3 text-center">Авторизація</h1>
-
-    <div v-if="errorMessage" class="alert alert-danger py-2 mb-3" role="alert">
-      {{ errorMessage }}
+    <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
+        <h1 class="h3 mb-3 text-center">Авторизація</h1>
+        <form novalidate @submit.prevent="onSubmit">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <AppInput
+                    id="username"
+                    v-model="username"
+                    name="username"
+                    placeholder="Введіть username"
+                    :error="errors.username"
+                />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Пароль</label>
+                <AppInput
+                    id="password"
+                    v-model="password"
+                    name="password"
+                    type="password"
+                    placeholder="Введіть пароль"
+                    :error="errors.password"
+                />
+            </div>
+            <AppButton type="submit" class="w-100" :loading="isSubmitting">Увійти</AppButton>
+        </form>
     </div>
-
-    <form novalidate @submit.prevent="onSubmit">
-      <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input
-            id="username"
-            v-model="username"
-            type="text"
-            class="form-control"
-            :class="{ 'is-invalid': errors.username }"
-            placeholder="Введіть username"
-        />
-        <div class="invalid-feedback">
-          {{ errors.username }}
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="password" class="form-label">Пароль</label>
-        <input
-            id="password"
-            v-model="password"
-            type="password"
-            class="form-control"
-            :class="{ 'is-invalid': errors.password }"
-            placeholder="Введіть пароль"
-        />
-        <div class="invalid-feedback">
-          {{ errors.password }}
-        </div>
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
-        {{ isLoading ? 'Завантаження...' : 'Увійти' }}
-      </button>
-    </form>
-  </div>
 </template>

@@ -1,183 +1,104 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
+import { useUsersStore } from '@/entities/user'
+import { AppButton, AppInput, useAppToast } from '@/shared/ui'
 import { UsersTable } from '@/widgets/users-table'
-import type { User } from '@/entities/user'
-import { UserService } from '@/entities/user'
 
 const route = useRoute()
 const router = useRouter()
+const usersStore = useUsersStore()
+const { users, total, isLoading, error } = storeToRefs(usersStore)
+const { fetchUsers, removeUser } = usersStore
+const toast = useAppToast()
 
-const users = ref<User[]>([])
-const totalUsers = ref(0)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-
-const searchInput = ref('')
+const searchInput = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const pageSize = 10
-let currentRequestId = 0
 
 function parseQuery() {
-  const q = typeof route.query.q === 'string' ? route.query.q : ''
-  let page = parseInt(typeof route.query.page === 'string' ? route.query.page : '1', 10)
-  if (isNaN(page) || page < 1) {
-    page = 1
-  }
-  return { q, page }
+    const q = typeof route.query.q === 'string' ? route.query.q : ''
+    const parsedPage = Number.parseInt(typeof route.query.page === 'string' ? route.query.page : '1', 10)
+    return { q, page: Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage }
 }
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalUsers.value / pageSize)))
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 
-async function loadUsers() {
-  const { q, page } = parseQuery()
-  searchInput.value = q
-
-  const requestId = ++currentRequestId
-  isLoading.value = true
-  error.value = null
-
-  const skip = (page - 1) * pageSize
-
-  try {
-    const userService = new UserService()
-    const res = await userService.getAll({
-      limit: pageSize,
-      skip,
-      q
-    })
-
-    if (requestId !== currentRequestId) return
-
-    users.value = res.users
-    totalUsers.value = res.total
-  } catch (err) {
-    if (requestId !== currentRequestId) return
-    error.value = err instanceof Error ? err.message : 'Не вдалося завантажити користувачів'
-  } finally {
-    if (requestId === currentRequestId) {
-      isLoading.value = false
-    }
-  }
+async function loadUsers(): Promise<void> {
+    const { q, page } = parseQuery()
+    searchInput.value = q
+    await fetchUsers(pageSize, (page - 1) * pageSize, q).catch(() => undefined)
 }
 
-watch(
-    () => route.query,
-    () => {
-      loadUsers()
-    },
-    { immediate: true }
-)
+watch(() => route.query, loadUsers, { immediate: true })
 
 let debounceTimer: ReturnType<typeof setTimeout>
-watch(searchInput, (newVal) => {
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    const trimmed = newVal.trim()
-    const currentQ = typeof route.query.q === 'string' ? route.query.q : ''
-    if (trimmed !== currentQ) {
-      const query: Record<string, string> = {}
-      if (trimmed) query.q = trimmed
-      router.replace({ query })
-    }
-  }, 300)
+watch(searchInput, (value) => {
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+        const q = value.trim()
+        const query: Record<string, string> = {}
+        if (q) query.q = q
+        router.replace({ query })
+    }, 300)
 })
 
-function goToPage(p: number) {
-  const { q } = parseQuery()
-  const query: Record<string, string> = {}
-  if (q) query.q = q
-  if (p > 1) query.page = String(p)
-
-  router.push({ query })
+function goToPage(page: number): void {
+    const { q } = parseQuery()
+    const query: Record<string, string> = {}
+    if (q) query.q = q
+    if (page > 1) query.page = String(page)
+    router.push({ query })
 }
 
-function previousPage() {
-  const { page } = parseQuery()
-  if (page > 1) {
-    goToPage(page - 1)
-  }
-}
-
-function nextPage() {
-  const { page } = parseQuery()
-  if (page < totalPages.value) {
-    goToPage(page + 1)
-  }
-}
-
-async function deleteUser(id: number) {
-  try {
-    const userService = new UserService()
-    await userService.delete(id)
-    loadUsers()
-  } catch (err) {
-    alert(err instanceof Error ? err.message : 'Не вдалося видалити користувача')
-  }
+async function deleteUser(id: number): Promise<void> {
+    try {
+        await removeUser(id)
+        toast.success('Користувача видалено')
+    } catch (cause) {
+        toast.error('Не вдалося видалити користувача', cause instanceof Error ? cause.message : undefined)
+    }
 }
 </script>
 
 <template>
-  <section class="users-page container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div>
-        <h1 class="mb-1">Користувачі</h1>
-        <p class="text-muted mb-0">Список користувачів з REST API DummyJSON.</p>
-      </div>
+    <section class="users-page container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="mb-1">Користувачі</h1>
+                <p class="text-muted mb-0">Список користувачів з REST API DummyJSON.</p>
+            </div>
+            <RouterLink to="/users/create" class="btn btn-success">+ Створити користувача</RouterLink>
+        </div>
 
-      <RouterLink to="/users/create" class="btn btn-success">
-        + Створити користувача
-      </RouterLink>
-    </div>
+        <div class="mb-4">
+            <AppInput
+                v-model="searchInput"
+                type="search"
+                aria-label="Пошук користувачів"
+                placeholder="Пошук за ім'ям, email або username..."
+            />
+        </div>
 
-    <input
-        v-model="searchInput"
-        class="form-control mb-4"
-        type="search"
-        placeholder="Пошук за ім'ям, email або username..."
-        aria-label="Пошук користувачів"
-    />
+        <p v-if="isLoading" class="text-secondary py-3">Завантаження користувачів...</p>
+        <div v-else-if="error" class="alert alert-danger" role="alert">
+            <p class="mb-2">{{ error }}</p>
+            <AppButton severity="danger" @click="loadUsers">Спробувати ще раз</AppButton>
+        </div>
+        <template v-else>
+            <p class="text-muted">Знайдено користувачів: {{ total }}</p>
+            <UsersTable v-if="users.length" :users="users" @delete="deleteUser" />
+            <p v-else class="text-muted py-3">Користувачів не знайдено.</p>
 
-    <p v-if="isLoading" class="text-secondary py-3">Завантаження користувачів...</p>
-
-    <div v-else-if="error" class="alert alert-danger" role="alert">
-      <p class="mb-2">{{ error }}</p>
-      <button type="button" class="btn btn-outline-danger btn-sm" @click="loadUsers">
-        Спробувати ще раз
-      </button>
-    </div>
-
-    <template v-else>
-      <p class="text-muted">Знайдено користувачів: {{ totalUsers }}</p>
-
-      <UsersTable
-          v-if="users.length"
-          :users="users"
-          @delete="deleteUser"
-      />
-
-      <p v-else class="text-muted py-3">Користувачів не знайдено.</p>
-
-      <div class="d-flex align-items-center justify-content-center gap-3 mt-4">
-        <button
-            type="button"
-            class="btn btn-outline-secondary btn-sm"
-            :disabled="parseQuery().page <= 1"
-            @click="previousPage"
-        >
-          Назад
-        </button>
-
-        <span>Сторінка {{ parseQuery().page }} з {{ totalPages }}</span>
-
-        <button
-            type="button"
-            class="btn btn-outline-secondary btn-sm"
-            :disabled="parseQuery().page >= totalPages"
-            @click="nextPage"
-        >
-          Далі
-        </button>
-      </div>
-    </template>
-  </section>
+            <div class="d-flex align-items-center justify-content-center gap-3 mt-4">
+                <AppButton severity="secondary" :disabled="parseQuery().page <= 1" @click="goToPage(parseQuery().page - 1)">
+                    Назад
+                </AppButton>
+                <span>Сторінка {{ parseQuery().page }} з {{ totalPages }}</span>
+                <AppButton severity="secondary" :disabled="parseQuery().page >= totalPages" @click="goToPage(parseQuery().page + 1)">
+                    Далі
+                </AppButton>
+            </div>
+        </template>
+    </section>
 </template>

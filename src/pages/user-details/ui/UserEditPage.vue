@@ -1,98 +1,71 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { useUsersStore, type CreateUserDto, type UpdateUserDto } from '@/entities/user'
 import { UserForm } from '@/features/user-form'
-import type { CreateUserDto, UpdateUserDto } from '@/entities/user'
-import { UserService } from '@/entities/user'
+import { useAppToast } from '@/shared/ui'
 
-const props = defineProps<{
-  id: string
-}>()
-
+const props = defineProps<{ id: string }>()
 const router = useRouter()
-const isLoading = ref(false)
+const usersStore = useUsersStore()
+const { currentUser, isLoading } = storeToRefs(usersStore)
+const toast = useAppToast()
 const isSaving = ref(false)
-const error = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
-const initialValues = ref<Partial<CreateUserDto>>({})
 
-async function loadUser() {
-  const userId = Number(props.id)
-  if (!Number.isInteger(userId) || userId <= 0) {
-    error.value = 'Некоректний ID користувача'
-    return
-  }
+const initialValues = computed<Partial<CreateUserDto>>(() => ({
+    firstName: currentUser.value?.firstName ?? '',
+    lastName: currentUser.value?.lastName ?? '',
+    email: currentUser.value?.email ?? '',
+    username: currentUser.value?.username ?? '',
+    password: '',
+    age: currentUser.value?.age ?? 18,
+    gender: currentUser.value?.gender ?? 'male',
+    phone: currentUser.value?.phone ?? '',
+}))
 
-  isLoading.value = true
-  error.value = null
-
-  try {
-    const userService = new UserService()
-    const user = await userService.getById(userId)
-    initialValues.value = {
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      email: user.email || '',
-      username: user.username || '',
-      password: '',
-      age: user.age || 18,
-      gender: user.gender || 'male',
-      phone: user.phone || ''
+async function loadUser(): Promise<void> {
+    const id = Number(props.id)
+    if (!Number.isInteger(id) || id <= 0) {
+        toast.error('Некоректний ID користувача')
+        return
     }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося завантажити користувача'
-  } finally {
-    isLoading.value = false
-  }
+    try {
+        await usersStore.fetchUser(id)
+    } catch (cause) {
+        toast.error('Не вдалося завантажити користувача', cause instanceof Error ? cause.message : undefined)
+    }
 }
 
-watch(() => props.id, loadUser)
-onMounted(loadUser)
+watch(() => props.id, loadUser, { immediate: true })
 
-async function handleSubmit(values: UpdateUserDto) {
-  isSaving.value = true
-  error.value = null
-  successMessage.value = null
-
-  try {
-    const userService = new UserService()
-    await userService.update(Number(props.id), values)
-    successMessage.value = 'Зміни збережено успішно!'
-
-    setTimeout(() => {
-      router.push(`/users/${props.id}`)
-    }, 1000)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося зберегти зміни'
-  } finally {
-    isSaving.value = false
-  }
+async function handleSubmit(values: CreateUserDto | UpdateUserDto): Promise<void> {
+    isSaving.value = true
+    try {
+        await usersStore.updateUser(Number(props.id), values as UpdateUserDto)
+        toast.success('Користувача оновлено')
+        await router.push(`/users/${props.id}`)
+    } catch (cause) {
+        toast.error('Не вдалося оновити користувача', cause instanceof Error ? cause.message : undefined)
+    } finally {
+        isSaving.value = false
+    }
 }
 </script>
 
 <template>
-  <section class="user-edit container py-4">
-    <RouterLink :to="`/users/${id}`" class="btn btn-outline-secondary btn-sm mb-3">
-      ← Назад до деталей
-    </RouterLink>
-
-    <h1 class="h3 mb-4">Редагування користувача #{{ id }}</h1>
-
-    <p v-if="isLoading">Завантаження даних...</p>
-
-    <div v-else-if="error && !initialValues.firstName" class="alert alert-danger" role="alert">
-      {{ error }}
-    </div>
-
-    <UserForm
-        v-else
-        :initial-values="initialValues"
-        :is-saving="isSaving"
-        submit-label="Зберегти зміни"
-        :is-edit-mode="true"
-        :error="error"
-        :success-message="successMessage"
-        @submit="handleSubmit"
-    />
-  </section>
+    <section class="container py-4">
+        <RouterLink :to="`/users/${id}`" class="btn btn-outline-secondary btn-sm mb-3">← До деталей</RouterLink>
+        <h1 class="h3 mb-4">Редагування користувача #{{ id }}</h1>
+        <p v-if="isLoading">Завантаження даних...</p>
+        <UserForm
+            v-else
+            :key="id"
+            :initial-values="initialValues"
+            :is-saving="isSaving"
+            submit-label="Зберегти зміни"
+            is-edit-mode
+            @submit="handleSubmit"
+        />
+    </section>
 </template>

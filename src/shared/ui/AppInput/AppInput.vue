@@ -5,6 +5,7 @@ withDefaults(defineProps<{
     modelValue: string | number
     type?: string
     id?: string
+    ariaLabel?: string
     name?: string
     placeholder?: string
     disabled?: boolean
@@ -24,6 +25,7 @@ function updateValue(value: string | undefined): void {
     <div class="app-input">
         <InputText
             :id="id"
+            :aria-label="ariaLabel"
             :name="name"
             :model-value="String(modelValue ?? '')"
             :type="type"

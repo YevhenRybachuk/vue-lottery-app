@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import AppNavigation from './AppNavigation.vue'
 import Logo from './Logo.vue'
 import { useAuthStore } from '@/features/auth'
+import { AppButton } from '@/shared/ui'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -24,9 +25,7 @@ const handleLogout = () => {
         <span v-if="authStore.user" class="user-name me-3">
           {{ authStore.user.firstName }}
         </span>
-        <button type="button" class="btn btn-outline-danger btn-sm" @click="handleLogout">
-          Logout
-        </button>
+        <AppButton severity="danger" @click="handleLogout">Logout</AppButton>
       </template>
       <template v-else>
         <RouterLink to="/login" class="login-link">
