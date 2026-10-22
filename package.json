@@ -8,11 +8,15 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "lint:fsd": "steiger src",
     "deploy": "npm run build && node -e \"import('node:fs').then(f=>f.copyFileSync('dist/index.html','dist/404.html'))\" && gh-pages -d dist"
   },
   "dependencies": {
+    "@primeuix/themes": "^3.1.0",
     "bootstrap": "^5.3.8",
     "pinia": "^4.1.0",
+    "pinia-plugin-persistedstate": "^4.7.1",
+    "primevue": "^5.0.3",
     "vee-validate": "^4.15.1",
     "vue": "^3.5.42",
     "vue-router": "^5.4.0",
@@ -20,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@feature-sliced/steiger-plugin": "^0.8.0",
     "@tsconfig/node24": "^24.0.5",
     "@types/node": "^24.13.4",
     "@typescript-eslint/eslint-plugin": "^8.71.1",
@@ -32,6 +37,7 @@
     "globals": "^17.13.0",
     "npm-run-all2": "^9.0.3",
     "sass": "^1.105.1",
+    "steiger": "^0.8.0",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.71.1",
     "vite": "^8.2.2",
