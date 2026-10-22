@@ -38,8 +38,15 @@ const layout = computed(() => {
 }
 
 .app-dark .default-layout,
-.app-dark .app-header {
+.app-dark .app-header,
+.app-dark .auth-layout {
   background: #1d2520;
+  color: var(--app-foreground);
+}
+
+.app-dark .app-footer {
+  border-top-color: #39443d;
+  background-color: #1d2520;
   color: var(--app-foreground);
 }
 
