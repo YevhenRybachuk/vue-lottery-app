@@ -33,7 +33,7 @@ export class UserService
         Readable<User>,
         Creatable<User, CreateUserDto>,
         Editable<User, UpdateUserDto>,
-        Deletable<User>
+        Deletable
 {
     private modifiedUsers: Map<number, User>
     private createdUsers: User[]
