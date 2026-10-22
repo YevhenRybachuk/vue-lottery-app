@@ -4,8 +4,10 @@ import AppNavigation from './AppNavigation.vue'
 import Logo from './Logo.vue'
 import { useAuthStore } from '@/features/auth'
 import { AppButton } from '@/shared/ui'
+import { useSettingsStore } from '@/entities/setting'
 
 const authStore = useAuthStore()
+const settings = useSettingsStore()
 const router = useRouter()
 
 const handleLogout = () => {
@@ -21,6 +23,9 @@ const handleLogout = () => {
     <AppNavigation />
 
     <div class="auth-actions">
+      <AppButton severity="secondary" @click="settings.toggleTheme()">
+        {{ settings.isDark ? 'Світла тема' : 'Темна тема' }}
+      </AppButton>
       <template v-if="authStore.isAuthenticated">
         <span v-if="authStore.user" class="user-name me-3">
           {{ authStore.user.firstName }}
@@ -68,5 +73,9 @@ const handleLogout = () => {
   &:hover {
     background: #0b5ed7;
   }
+}
+
+:global(.app-dark) .app-header {
+  border-bottom-color: #38443c;
 }
 </style>

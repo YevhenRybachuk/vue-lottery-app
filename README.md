@@ -1,42 +1,64 @@
-# vue-lottery-app
+# Vue Lottery App
 
-This template should help get you started developing with Vue 3 in Vite.
+Навчальний застосунок Vue 3 + TypeScript: маршрутизація, авторизація та керування користувачами через DummyJSON. Архітектура організована за Feature-Sliced Design.
 
-## Recommended IDE Setup
-
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Запуск
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Production build і перевірки:
 
 ```sh
 npm run build
+npm run lint
+npm run lint:fsd
 ```
+
+Адреса API задається через `VITE_API_URL` у `.env`.
+
+## Структура та залежності FSD
+
+Кожен слайс експортує зовнішній API через `index.ts`. Імпорти між шарами спрямовані тільки вниз:
+
+```mermaid
+flowchart TD
+  app --> pages
+  app --> widgets
+  app --> features
+  app --> entities
+  app --> shared
+  pages --> widgets
+  pages --> features
+  pages --> entities
+  pages --> shared
+  widgets --> features
+  widgets --> entities
+  widgets --> shared
+  features --> entities
+  features --> shared
+  entities --> shared
+```
+
+- `app` — запуск, провайдери, роутер, стилі та реєстрація сервісів.
+- `pages` — компоненти маршрутів.
+- `widgets` — складені блоки, як-от шапка і таблиця користувачів.
+- `features` — дії користувача: авторизація, форми та пошук.
+- `entities` — користувач, сесія та налаштування застосунку.
+- `shared` — HTTP-клієнт, контракти Repository, реєстр сервісів та UI-обгортки.
+
+Steiger перевіряє структуру FSD командою `npm run lint:fsd`. Для перехресних імпортів використовуйте публічний API слайса, наприклад `@/entities/user`, а не шлях до його внутрішніх файлів.
+
+## Стан і збереження
+
+Stores визначені через Pinia Setup Store та Composition API. Список користувачів і CRUD-дії зосереджені в `entities/user`; сесія — в `entities/session`; тема — в `entities/settings`.
+
+Тема зберігається через `pinia-plugin-persistedstate`: плагін автоматично відновлює вибране значення і записує зміни. Сесія зберігається вручну в `session.store.ts`, оскільки HTTP-клієнту потрібно читати, оновлювати та видаляти токени під час авторизації й оновлення токена. Плагін зменшує шаблонний код для звичайного стану; ручне збереження дає явний контроль над окремими ключами та моментом їхнього оновлення.
+
+## UI
+
+Застосунок використовує PrimeVue з темою Aura та зеленим основним кольором. Компоненти бібліотеки імпортуються в `shared/ui`; решта коду використовує `AppButton`, `AppInput`, `AppTable`, `AppConfirmDialog` і `AppToast`. Окремі імпорти компонентів залишають можливість tree-shaking. Тему можна перемкнути в шапці; вибір зберігається в налаштуваннях Pinia.
+
+Форми входу та користувача валідуться через VeeValidate. Поля показують помилки через `AppInput`; повідомлення про результати операцій з'являються через toast.
