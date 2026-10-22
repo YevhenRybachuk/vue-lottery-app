@@ -1,19 +1,12 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import AppNavigation from './AppNavigation.vue'
 import Logo from './Logo.vue'
-import { useAuthStore } from '@/features/auth'
+import { LogoutButton, useAuthStore } from '@/features/auth'
 import { AppButton } from '@/shared/ui'
 import { useSettingsStore } from '@/entities/setting'
 
 const authStore = useAuthStore()
 const settings = useSettingsStore()
-const router = useRouter()
-
-const handleLogout = () => {
-  authStore.logout()
-  router.push('/login')
-}
 </script>
 
 <template>
@@ -30,7 +23,7 @@ const handleLogout = () => {
         <span v-if="authStore.user" class="user-name me-3">
           {{ authStore.user.firstName }}
         </span>
-        <AppButton severity="danger" @click="handleLogout">Logout</AppButton>
+        <LogoutButton />
       </template>
       <template v-else>
         <RouterLink to="/login" class="login-link">
