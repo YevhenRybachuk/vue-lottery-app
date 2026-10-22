@@ -1,3 +1,10 @@
+export { default as AppButton } from './AppButton/AppButton.vue'
+export { default as AppInput } from './AppInput/AppInput.vue'
+export { default as AppTable } from './AppTable/AppTable.vue'
+export { default as AppConfirmDialog } from './AppConfirmDialog/AppConfirmDialog.vue'
+export { default as AppToast } from './AppToast/AppToast.vue'
+export { useAppToast } from './AppToast/useAppToast'
+// Keep existing consumers working while pages and widgets migrate to the new wrappers.
 export { default as BaseButton } from './AppButton/BaseButton.vue'
 export { default as BaseInput } from './AppInput/BaseInput.vue'
 export { default as BaseModal } from './AppModal/BaseModal.vue'

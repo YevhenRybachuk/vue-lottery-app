@@ -5,6 +5,7 @@ import router from '@/app/providers/router'
 import { useAuthStore } from '@/features/auth'
 import { http, onTokensRefreshed } from '@/shared/api'
 import { registerServices } from './providers/services'
+import { setupUi } from './providers/ui'
 import './styles/main.scss'
 
 registerServices()
@@ -13,6 +14,7 @@ const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
+setupUi(app)
 
 const authStore = useAuthStore()
 
